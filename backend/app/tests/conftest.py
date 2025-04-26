@@ -7,7 +7,7 @@ import pytest
 import docker
 import time
 
-import app.tests.overide_settings
+import app.tests.override_settings
 from app.core.config import settings
 from app.core.db import init_db, engine
 from app.main import app
@@ -16,23 +16,23 @@ from app.tests.utils.user import authentication_token_from_email
 from app.tests.utils.utils import get_superuser_token_headers
 
 
-@pytest.fixture(scope="session", autouse=True)
-def postgres_container():
-    client = docker.from_env()
-    container = client.containers.run(
-        "postgres:15",
-        environment={
-            "POSTGRES_USER": settings.POSTGRES_USER,
-            "POSTGRES_PASSWORD": settings.POSTGRES_PASSWORD,
-            "POSTGRES_DB": settings.POSTGRES_DB,
-        },
-        ports={"5432/tcp": settings.POSTGRES_PORT},
-        detach=True,
-    )
-    time.sleep(5)  # 等待 PostgreSQL 啟動
-    yield
-    container.stop()
-    container.remove()
+# @pytest.fixture(scope="session", autouse=True)
+# def postgres_container():
+#     client = docker.from_env()
+#     container = client.containers.run(
+#         "postgres:15",
+#         environment={
+#             "POSTGRES_USER": settings.POSTGRES_USER,
+#             "POSTGRES_PASSWORD": settings.POSTGRES_PASSWORD,
+#             "POSTGRES_DB": settings.POSTGRES_DB,
+#         },
+#         ports={"5432/tcp": settings.POSTGRES_PORT},
+#         detach=True,
+#     )
+#     time.sleep(5)  # 等待 PostgreSQL 啟動
+#     yield
+#     container.stop()
+#     container.remove()
 
 
 @pytest.fixture(scope="session", autouse=True)

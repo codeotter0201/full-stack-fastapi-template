@@ -15,7 +15,7 @@ test-db-up:
 		-e POSTGRES_PASSWORD=$(TEST_DB_PASSWORD) \
 		-e POSTGRES_DB=$(TEST_DB_NAME) \
 		-p $(TEST_DB_PORT):5432 \
-		-d postgres:15
+		-d postgres:13
 	@echo "等待資料庫啟動..."
 	@sleep 5
 
