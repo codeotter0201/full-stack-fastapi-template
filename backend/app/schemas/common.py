@@ -1,8 +1,7 @@
 import uuid
 from typing import Generic, TypeVar
 
-from pydantic import BaseModel, Field
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
 
 # 定義通用類型變數
 T = TypeVar("T")

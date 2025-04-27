@@ -1,5 +1,5 @@
-from pydantic import EmailStr, Field
-from sqlmodel import SQLModel
+from pydantic import EmailStr
+from sqlmodel import SQLModel, Field
 
 from app.schemas.common import IDModel, PaginatedResponse
 

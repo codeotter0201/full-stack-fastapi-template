@@ -1,6 +1,6 @@
 import uuid
 
-from sqlmodel import Field, Relationship
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.schemas import UserBase, ItemBase
 

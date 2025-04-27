@@ -1,7 +1,6 @@
 import uuid
 
-from pydantic import Field
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, Field
 
 from app.schemas.common import IDModel, PaginatedResponse
 

@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import List
 
 from sqlmodel import Session, select
 
