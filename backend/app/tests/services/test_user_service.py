@@ -57,6 +57,59 @@ def test_not_authenticate_user(db: Session) -> None:
     assert user is None
 
 
+def test_check_if_user_is_active(db: Session) -> None:
+    """測試檢查用戶是否活躍"""
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password)
+    user_service = UserService(db)
+    user = user_service.create(user_in)
+    assert user.is_active is True
+
+
+def test_check_if_user_is_active_inactive(db: Session) -> None:
+    """測試檢查停用用戶是否活躍"""
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password, disabled=True)
+    user_service = UserService(db)
+    user = user_service.create(user_in)
+    assert user.is_active
+
+
+def test_check_if_user_is_superuser(db: Session) -> None:
+    """測試檢查用戶是否為超級用戶"""
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password, is_superuser=True)
+    user_service = UserService(db)
+    user = user_service.create(user_in)
+    assert user.is_superuser is True
+
+
+def test_check_if_user_is_superuser_normal_user(db: Session) -> None:
+    """測試檢查普通用戶是否為超級用戶"""
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user_service = UserService(db)
+    user = user_service.create(user_in)
+    assert user.is_superuser is False
+
+
+def test_get_user(db: Session) -> None:
+    """測試獲取用戶"""
+    password = random_lower_string()
+    username = random_email()
+    user_in = UserCreate(email=username, password=password, is_superuser=True)
+    user_service = UserService(db)
+    user = user_service.create(user_in)
+    user_2 = db.get(User, user.id)
+    assert user_2
+    assert user.email == user_2.email
+    assert jsonable_encoder(user) == jsonable_encoder(user_2)
+
+
 def test_get_user_by_email(db: Session) -> None:
     """測試透過電子郵件獲取用戶"""
     email = random_email()
