@@ -6,7 +6,7 @@ from sqlmodel import Session
 from app.repositories.item import ItemRepository
 from app.repositories.user import UserRepository
 from app.schemas.item import ItemCreate, ItemUpdate
-from app.tables import Item, User
+from app.models import Item, User
 
 
 class ItemService:

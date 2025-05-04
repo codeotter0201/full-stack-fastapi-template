@@ -4,7 +4,7 @@ from typing import List
 from sqlmodel import Session, select
 
 from app.repositories.base import BaseRepository
-from app.tables import Item
+from app.models import Item
 
 
 class ItemRepository(BaseRepository[Item]):

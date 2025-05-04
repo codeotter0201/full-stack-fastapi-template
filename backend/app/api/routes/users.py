@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, delete, func, select
 
-from app import crud
+from app.services.user import UserService
 from app.api.deps import (
     CurrentUser,
     SessionDep,
@@ -12,11 +12,10 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-from app.models import (
-    Item,
+from app.models import User, Item
+from app.schemas import (
     Message,
     UpdatePassword,
-    User,
     UserCreate,
     UserPublic,
     UserRegister,
@@ -38,14 +37,11 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve users.
     """
+    user_service = UserService(session)
+    count = user_service.count()
+    users = user_service.get_all(skip=skip, limit=limit)
 
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = select(User).offset(skip).limit(limit)
-    users = session.exec(statement).all()
-
-    return UsersPublic(data=users, count=count)
+    return UsersPublic(data=users, count=count, skip=skip, limit=limit)
 
 
 @router.post(
@@ -55,14 +51,15 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     """
     Create new user.
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
+    user_service = UserService(session)
+    user = user_service.get_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    user = user_service.create(user_in)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -82,9 +79,9 @@ def update_user_me(
     """
     Update own user.
     """
-
+    user_service = UserService(session)
     if user_in.email:
-        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        existing_user = user_service.get_by_email(user_in.email)
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
@@ -144,14 +141,14 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
+    user_service = UserService(session)
+    user = user_service.get_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
-    user_create = UserCreate.model_validate(user_in)
-    user = crud.create_user(session=session, user_create=user_create)
+    user = user_service.register(user_in)
     return user
 
 
@@ -187,21 +184,21 @@ def update_user(
     """
     Update a user.
     """
-
-    db_user = session.get(User, user_id)
+    user_service = UserService(session)
+    db_user = user_service.get(user_id)
     if not db_user:
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        existing_user = user_service.get_by_email(user_in.email)
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
 
-    db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
+    db_user = user_service.update(user_id, user_in)
     return db_user
 
 
@@ -212,7 +209,8 @@ def delete_user(
     """
     Delete a user.
     """
-    user = session.get(User, user_id)
+    user_service = UserService(session)
+    user = user_service.get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if user == current_user:
@@ -221,6 +219,5 @@ def delete_user(
         )
     statement = delete(Item).where(col(Item.owner_id) == user_id)
     session.exec(statement)  # type: ignore
-    session.delete(user)
-    session.commit()
+    user_service.delete(user_id)
     return Message(message="User deleted successfully")

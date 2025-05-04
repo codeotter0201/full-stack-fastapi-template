@@ -6,7 +6,7 @@ from app.core.security import verify_password
 
 from app.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserUpdate, UserRegister
-from app.tables import User
+from app.models import User
 
 
 class UserService:
